@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .card-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .card h3 {
+      margin: 0;
+      color: #333;
+    }
+    .card p {
+      margin: 5px 0;
+      color: #555;
+    }
+    .card .status {
+      font-weight: bold;
+    }
+    .status-pending {
+      color: #007bff; /* Blue for Pending */
+    }
+    .status-sent {
+      color: #ffc107; /* Amber for Sent */
+    }
+    .status-replied {
+      color: #28a745; /* Green for Replied */
+    }
+    button {
+      display: inline-block;
+      margin: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+    button:active {
+      background-color: #004494;
+    }
+    .refresh-button {
+      background-color: #17a2b8; /* Teal for Refresh */
+    }
+    .refresh-button:hover {
+      background-color: #138496;
+    }
+  </style>
+</head>
+<body>
+  <h1>Name and Email List</h1>
+  <div id="cardContainer" class="card-container">
+    <!-- Cards will be inserted here -->
+  </div>
+  <div style="text-align: center;">
+    <button onclick="resetData()">Reset</button>
+    <button onclick="sendEmails()">Send Emails</button>
+    <button class="refresh-button" onclick="refreshStatus()">Refresh Status</button>
+  </div>
+
+  <script>
+    function loadNamesAndEmails() {
+      google.script.run.withSuccessHandler(function(data) {
+        const cardContainer = document.getElementById('cardContainer');
+        cardContainer.innerHTML = ''; // Clear existing data
+
+        data.forEach(entry => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <h3>${entry.name}</h3>
+            <p>Email: ${entry.email}</p>
+            <p class="status status-${entry.status.toLowerCase()}">Status: ${entry.status || 'Pending'}</p>
+          `;
+          cardContainer.appendChild(card);
+        });
+      }).getNamesAndEmailsWithStatus();
+    }
+
+    function resetData() {
+      google.script.run.resetNamesAndEmails();
+      google.script.run.initializeStatus();
+      loadNamesAndEmails();
+    }
+
+    function sendEmails() {
+      google.script.run.sendEmails();
+      showConfirmation();
+    }
+
+    function showConfirmation() {
+      const confirmation = document.createElement('div');
+      confirmation.style.position = 'fixed';
+      confirmation.style.top = '50%';
+      confirmation.style.left = '50%';
+      confirmation.style.transform = 'translate(-50%, -50%)';
+      confirmation.style.padding = '20px';
+      confirmation.style.backgroundColor = '#007bff';
+      confirmation.style.color = '#fff';
+      confirmation.style.borderRadius = '5px';
+      confirmation.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+      confirmation.style.zIndex = '1000';
+      confirmation.innerText = 'Emails have been sent successfully!';
+      
+      document.body.appendChild(confirmation);
+      setTimeout(() => {
+        document.body.removeChild(confirmation);
+      }, 2000);
+    }
+
+    function refreshStatus() {
+      loadNamesAndEmails(); // Reload data to reflect updated statuses
+    }
+
+    // Load names and emails when the sidebar is opened
+    loadNamesAndEmails();
+  </script>
+</body>
+</html>
